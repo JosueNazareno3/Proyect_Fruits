@@ -1,58 +1,61 @@
-# app_streamlit.py
-import os
-import uuid
-import numpy as np
-from PIL import Image
 import streamlit as st
+import numpy as np
 import tensorflow as tf
+from PIL import Image
+import gdown
+import os
 
-st.set_page_config(page_title="Clasificador de frutas", layout="centered")
+# ==============================
+# CONFIGURACIÓN DEL TÍTULO
+# ==============================
+st.set_page_config(page_title="Clasificador de Frutas", page_icon="🍌", layout="centered")
+st.title("🍎 Clasificador de Frutas con IA")
+st.write("Sube una imagen de fruta y la IA intentará adivinar cuál es.")
 
-# --- Config: ruta al modelo ---
-MODEL_LOCAL_PATH = "model/fruits_model.h5"  # ajusta si lo descargas
-# Si prefieres descargar el modelo automáticamente, ver más abajo
+# ==============================
+# DESCARGAR MODELO SI NO EXISTE
+# ==============================
+MODEL_PATH = "model/fruits_model.h5"
+MODEL_URL = "https://drive.google.com/uc?id=TU_ID_DE_DRIVE"  # ← pon el ID del modelo aquí
 
-@st.cache_resource(show_spinner=False)
-def cargar_modelo(ruta_modelo):
-    if not os.path.exists(ruta_modelo):
-        raise FileNotFoundError(f"Modelo no encontrado en: {ruta_modelo}. Súbelo al repo o descarga al iniciar.")
-    model = tf.keras.models.load_model(ruta_modelo)
-    return model
+os.makedirs("model", exist_ok=True)
 
-CLASES = ["banana", "fresa", "kiwi", "manzana", "naranja", "pina", "sandia", "uva"]
+if not os.path.exists(MODEL_PATH):
+    with st.spinner("Descargando modelo..."):
+        gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
 
-st.title("📷 Clasificador de frutas - Streamlit")
-st.write("Sube una imagen y el modelo te dirá la fruta.")
+# ==============================
+# CARGAR MODELO
+# ==============================
+@st.cache_resource
+def load_model():
+    return tf.keras.models.load_model(MODEL_PATH)
 
-# Cargar modelo (muestra error si no existe)
-try:
-    model = cargar_modelo(MODEL_LOCAL_PATH)
-except Exception as e:
-    st.error(f"No se pudo cargar el modelo: {e}")
-    st.stop()
+model = load_model()
 
-uploaded = st.file_uploader("Sube una imagen (jpg/png)", type=["jpg", "jpeg", "png", "webp"])
+# Lista de clases (ajusta a las tuyas)
+class_names = ["banana", "manzana", "naranja", "uva", "sandía", "pera", "fresa", "piña"]
 
-if uploaded is not None:
-    # Guardar una copia temporal (opcional)
-    nombre = str(uuid.uuid4()) + os.path.splitext(uploaded.name)[1]
-    ruta_tmp = os.path.join("temp_uploads")
-    os.makedirs(ruta_tmp, exist_ok=True)
-    ruta = os.path.join(ruta_tmp, nombre)
-    with open(ruta, "wb") as f:
-        f.write(uploaded.getbuffer())
+# ==============================
+# SUBIR IMAGEN
+# ==============================
+uploaded_file = st.file_uploader("📷 Sube una imagen", type=["jpg", "jpeg", "png", "bmp", "webp"])
 
+if uploaded_file is not None:
     # Mostrar imagen
-    st.image(ruta, caption="Imagen subida", use_column_width=True)
+    image = Image.open(uploaded_file).convert("RGB")
+    st.image(image, caption="Imagen subida", use_column_width=True)
 
-    # Preparar para predecir
-    try:
-        img = Image.open(ruta).convert("RGB")
-        img = img.resize((224, 224))
-        img_array = np.array(img) / 255.0
-        pred = model.predict(img_array.reshape(1, 224, 224, 3))
-        indice = int(np.argmax(pred[0]))
-        prob = float(np.max(pred[0]))
-        st.success(f"Predicción: **{CLASES[indice]}**  — confianza: {prob:.2f}")
-    except Exception as e:
-        st.error(f"Error al procesar la imagen: {e}")
+    # Preprocesar imagen
+    img_resized = image.resize((224, 224))  # ajusta según tu modelo
+    img_array = np.array(img_resized) / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
+
+    # Predicción
+    with st.spinner("Analizando imagen..."):
+        predictions = model.predict(img_array)
+        predicted_class = class_names[np.argmax(predictions)]
+        confidence = np.max(predictions) * 100
+
+    # Mostrar resultado
+    st.success(f"**Predicción:** {predicted_class} ({confidence:.2f}%)")
