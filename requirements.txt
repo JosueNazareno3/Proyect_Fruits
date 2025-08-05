@@ -1,7 +1,6 @@
 streamlit
-tensorflow
-flask
-opencv-python
-numpy
+tensorflow==2.13.0   # ajusta versión que hayas probado
 pillow
-matplotlib
+numpy
+h5py
+gdown    # si usas descarga automática
