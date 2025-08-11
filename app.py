@@ -30,4 +30,5 @@ if img_file is not None:
     predicted_class = np.argmax(predictions[0])
     confidence = predictions[0][predicted_class]
 
-    st.markdown(f"### 🍏 La fruta es: **{class_names[predicted_class]}** con un {confidence*100:.2f}% de confianza")
+    st.markdown(f"### La fruta es: **{class_names[predicted_class]}** con un {confidence*100:.2f}% de confianza")
+
