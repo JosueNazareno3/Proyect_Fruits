@@ -3,7 +3,7 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 
-MODEL_PATH = "modelo.h5"
+MODEL_PATH = "model/fruits_model.h5"
 model = tf.keras.models.load_model(MODEL_PATH)
 
 class_names = ["banana", "fresa", "kiwi", "manzana", "naranja", "pina", "sandia", "uva"]
@@ -25,3 +25,4 @@ if uploaded_file is not None:
     confidence = predictions[0][predicted_class]
 
     st.write(f"### Es una **{class_names[predicted_class]}** 🍇 con un {confidence*100:.2f}% de confianza")
+
