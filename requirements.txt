@@ -1,5 +1,6 @@
-tensorflow==2.19.0
-flask
-tensorflowjs
-matplotlib
+streamlit
+tensorflow
+numpy
 pillow
+opencv-python
+h5py
