@@ -10,7 +10,7 @@ model = tf.keras.models.load_model(MODEL_PATH)
 # Lista de frutas en el mismo orden que tu entrenamiento
 class_names = ["banana", "fresa", "kiwi", "manzana", "naranja", "pina", "sandia", "uva"]
 
-st.title("Clasificador de Frutas en Vivo 🍎🍌🍇")
+st.title("Clasificador de Frutas 🍎🍌🍇")
 st.write("Toma una foto con tu cámara y detectaremos la fruta.")
 
 # Abrir cámara
@@ -31,4 +31,5 @@ if img_file is not None:
     confidence = predictions[0][predicted_class]
 
     st.markdown(f"### La fruta es: **{class_names[predicted_class]}** con un {confidence*100:.2f}% de confianza")
+
 
